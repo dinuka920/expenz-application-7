@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:expenz/screens/onboarding_screen.dart';
+
 void main() {
   runApp(const MayApp());
 }
@@ -15,17 +17,7 @@ class MayApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: "inter",
       ),
-      home: const Scaffold(
-        body: Center(
-          child: Text(
-            "Hello Flutter",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w300,
-            ),
-          ),
-        ),
-      ),
+      home: OnboardingScreen(),
     );
   }
 }
