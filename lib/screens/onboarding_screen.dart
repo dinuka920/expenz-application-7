@@ -23,92 +23,94 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: Column(
         children: [
           Expanded(
-            child: Stack(children: [
-              //onbording screen
-              PageView(
-                controller: _controller,
-                onPageChanged: (index) {
-                  setState(() {
-                    showDetailsPage = index == 3;
-                  });
-                },
-                children: [
-                  const FrontPage(),
-                  SharedOnboardingScreen(
-                    imageUrl: OnboradingData.onboardingDataList[0].imageUrl,
-                    title: OnboradingData.onboardingDataList[0].title,
-                    description:
-                        OnboradingData.onboardingDataList[0].description,
-                  ),
-                  SharedOnboardingScreen(
-                    imageUrl: OnboradingData.onboardingDataList[1].imageUrl,
-                    title: OnboradingData.onboardingDataList[1].title,
-                    description:
-                        OnboradingData.onboardingDataList[1].description,
-                  ),
-                  SharedOnboardingScreen(
-                    imageUrl: OnboradingData.onboardingDataList[2].imageUrl,
-                    title: OnboradingData.onboardingDataList[2].title,
-                    description:
-                        OnboradingData.onboardingDataList[2].description,
-                  ),
-                ],
-              ),
-              //page dot indicatior
-              Container(
-                alignment: const Alignment(0, 0.75),
-                child: SmoothPageIndicator(
+            child: Stack(
+              children: [
+                //onbording screen
+                PageView(
                   controller: _controller,
-                  count: 4,
-                  effect: const WormEffect(
-                    activeDotColor: kMainColor,
-                    dotColor: kLightGrey,
+                  onPageChanged: (index) {
+                    setState(() {
+                      showDetailsPage = index == 3;
+                    });
+                  },
+                  children: [
+                    const FrontPage(),
+                    SharedOnboardingScreen(
+                      imageUrl: OnboradingData.onboardingDataList[0].imageUrl,
+                      title: OnboradingData.onboardingDataList[0].title,
+                      description:
+                          OnboradingData.onboardingDataList[0].description,
+                    ),
+                    SharedOnboardingScreen(
+                      imageUrl: OnboradingData.onboardingDataList[1].imageUrl,
+                      title: OnboradingData.onboardingDataList[1].title,
+                      description:
+                          OnboradingData.onboardingDataList[1].description,
+                    ),
+                    SharedOnboardingScreen(
+                      imageUrl: OnboradingData.onboardingDataList[2].imageUrl,
+                      title: OnboradingData.onboardingDataList[2].title,
+                      description:
+                          OnboradingData.onboardingDataList[2].description,
+                    ),
+                  ],
+                ),
+                //page dot indicatior
+                Container(
+                  alignment: const Alignment(0, 0.75),
+                  child: SmoothPageIndicator(
+                    controller: _controller,
+                    count: 4,
+                    effect: const WormEffect(
+                      activeDotColor: kMainColor,
+                      dotColor: kLightGrey,
+                    ),
                   ),
                 ),
-              ),
 
-              //navigation button
+                //navigation button
 
-              Positioned(
-                bottom: 20,
-                left: 0,
-                right: 0,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30),
-                  child: !showDetailsPage
-                      ? GestureDetector(
-                          onTap: () {
-                            _controller.animateToPage(
-                              _controller.page!.toInt() + 1,
-                              duration: const Duration(milliseconds: 400),
-                              curve: Curves.easeInOut,
-                            );
-                          },
-                          child: CustomButton(
-                            buttonName:
-                                showDetailsPage ? "Get Started" : 'Next',
-                            buttonColor: kMainColor,
+                Positioned(
+                  bottom: 20,
+                  left: 0,
+                  right: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 30),
+                    child: !showDetailsPage
+                        ? GestureDetector(
+                            onTap: () {
+                              _controller.animateToPage(
+                                _controller.page!.toInt() + 1,
+                                duration: const Duration(milliseconds: 400),
+                                curve: Curves.easeInOut,
+                              );
+                            },
+                            child: CustomButton(
+                              buttonName:
+                                  showDetailsPage ? "Get Started" : 'Next',
+                              buttonColor: kMainColor,
+                            ),
+                          )
+                        : GestureDetector(
+                            onTap: () {
+                              //Navigate to the user data screen
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const UserDataScreen(),
+                                ),
+                              );
+                            },
+                            child: CustomButton(
+                              buttonName:
+                                  showDetailsPage ? "Get Started" : 'Next',
+                              buttonColor: kMainColor,
+                            ),
                           ),
-                        )
-                      : GestureDetector(
-                          onTap: () {
-                            //Navigate to the user data screen
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const UserDataScreen(),
-                              ),
-                            );
-                          },
-                          child: CustomButton(
-                            buttonName:
-                                showDetailsPage ? "Get Started" : 'Next',
-                            buttonColor: kMainColor,
-                          ),
-                        ),
-                ),
-              )
-            ]),
+                  ),
+                )
+              ],
+            ),
           ),
         ],
       ),
