@@ -31,15 +31,23 @@ class UserServicers {
       await pref.setString("email", email);
 
       //show a message to the user
-      if(context.mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("User Details stored successfully"),
-        ),
-      );
+          const SnackBar(
+            content: Text("User Details stored successfully"),
+          ),
+        );
       }
     } catch (err) {
       err.toString();
     }
+  }
+
+  //methode to check weather the userName is saved in the shared pref
+  static Future<bool> checkUsername() async {
+    //create an instance for shared pref
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userName = prefs.getString("userName");
+    return userName != null;
   }
 }
