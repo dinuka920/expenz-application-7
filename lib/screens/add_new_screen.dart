@@ -1,38 +1,46 @@
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-
+import 'package:expenz/constants/constants.dart';
 import 'package:expenz/models/expence_model.dart';
 import 'package:expenz/models/income_model.dart';
+import 'package:expenz/services/expense_service.dart';
+import 'package:expenz/services/income_services.dart';
 import 'package:expenz/widgets/custom_button.dart';
+import 'package:flutter/material.dart';
 
 import 'package:expenz/constants/colors.dart';
-import 'package:expenz/constants/constants.dart';
+import 'package:intl/intl.dart';
 
 class AddNewScreen extends StatefulWidget {
-  const AddNewScreen({super.key});
+  final Function(ExpenceModel) addExpense;
+  final Function(IncomeModel) addIncome;
+  const AddNewScreen({
+    super.key,
+    required this.addExpense,
+    required this.addIncome,
+  });
 
   @override
   State<AddNewScreen> createState() => _AddNewScreenState();
 }
 
 class _AddNewScreenState extends State<AddNewScreen> {
-  //varibles
+  //state to track the expence or income
   int _selectedMethode = 0;
-  ExpenceCategory _expenceCategory = ExpenceCategory.shopping;
-  IncomeCategory _incomeCategory = IncomeCategory.freelance;
+  ExpenceCategory _expenceCategory = ExpenceCategory.health;
+  IncomeCategory _incomeCategory = IncomeCategory.salary;
+  final TextEditingController _titleControoller = TextEditingController();
+  final TextEditingController _descriptionControoller = TextEditingController();
+  final TextEditingController _amountControoller = TextEditingController();
+
   DateTime _selectedDate = DateTime.now();
   DateTime _selectedTime = DateTime.now();
 
-  //text input controlers
-  final TextEditingController _titleControoller = TextEditingController();
-  final TextEditingController _discriptionControoller = TextEditingController();
-  final TextEditingController _amountControoller = TextEditingController();
+  final _formkey = GlobalKey<FormState>();
 
   @override
   void dispose() {
     _titleControoller.dispose();
-    _discriptionControoller.dispose();
     _amountControoller.dispose();
+    _descriptionControoller.dispose();
     super.dispose();
   }
 
@@ -44,17 +52,14 @@ class _AddNewScreenState extends State<AddNewScreen> {
         child: SingleChildScrollView(
           child: Stack(
             children: [
-              //expence and income toggle menu
+              //expense and income toggle menu
               Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: kDefaultPadding,
-                  vertical: kDefaultPadding * 2,
-                ),
+                padding: const EdgeInsets.all(kDefaultPadding),
                 child: Container(
                   height: MediaQuery.of(context).size.height * 0.06,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(100),
                     color: kWhite,
+                    borderRadius: BorderRadius.circular(100),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -66,10 +71,9 @@ class _AddNewScreenState extends State<AddNewScreen> {
                           });
                         },
                         child: Container(
-                          height: MediaQuery.of(context).size.height * 0.053,
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(100),
                             color: _selectedMethode == 0 ? kRed : kWhite,
+                            borderRadius: BorderRadius.circular(100),
                           ),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
@@ -77,7 +81,7 @@ class _AddNewScreenState extends State<AddNewScreen> {
                               vertical: 10,
                             ),
                             child: Text(
-                              "Expence",
+                              "Expense",
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
@@ -94,10 +98,9 @@ class _AddNewScreenState extends State<AddNewScreen> {
                           });
                         },
                         child: Container(
-                          height: MediaQuery.of(context).size.height * 0.053,
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(100),
                             color: _selectedMethode == 1 ? kGreen : kWhite,
+                            borderRadius: BorderRadius.circular(100),
                           ),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
@@ -126,54 +129,57 @@ class _AddNewScreenState extends State<AddNewScreen> {
                     const EdgeInsets.symmetric(horizontal: kDefaultPadding),
                 child: Container(
                   margin: EdgeInsets.only(
-                    top: MediaQuery.of(context).size.height * 0.15,
+                    top: MediaQuery.of(context).size.height * 0.1,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "How much?",
+                        "How Much?",
                         style: TextStyle(
+                          color: kLightGrey.withOpacity(0.8),
                           fontSize: 22,
                           fontWeight: FontWeight.w600,
-                          color: kLightGrey.withOpacity(0.8),
                         ),
                       ),
                       const TextField(
                         style: TextStyle(
-                            fontSize: 60,
-                            fontWeight: FontWeight.bold,
-                            color: kWhite),
+                          fontSize: 60,
+                          color: kWhite,
+                          fontWeight: FontWeight.bold,
+                        ),
                         decoration: InputDecoration(
                           hintText: "0",
+                          border: InputBorder.none,
                           hintStyle: TextStyle(
+                            color: kWhite,
                             fontSize: 60,
                             fontWeight: FontWeight.bold,
-                            color: kWhite,
                           ),
-                          border: InputBorder.none,
                         ),
-                        keyboardType: TextInputType.number,
                       ),
                     ],
                   ),
                 ),
               ),
+
+              //user data from
               Container(
+                height: MediaQuery.of(context).size.height * 0.71,
                 margin: EdgeInsets.only(
-                  top: MediaQuery.of(context).size.height * 0.35,
+                  top: MediaQuery.of(context).size.height * 0.3,
                 ),
-                height: MediaQuery.of(context).size.height * 0.65,
                 decoration: const BoxDecoration(
                   color: kWhite,
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(30),
-                    topRight: Radius.circular(30),
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
                   ),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Form(
+                    key: _formkey,
                     child: Column(
                       children: [
                         //category selector dropdown
@@ -183,27 +189,23 @@ class _AddNewScreenState extends State<AddNewScreen> {
                               borderRadius: BorderRadius.circular(100),
                             ),
                             contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 20,
                               vertical: kDefaultPadding,
+                              horizontal: 20,
                             ),
                           ),
                           items: _selectedMethode == 0
-                              ? ExpenceCategory.values.map(
-                                  (category) {
-                                    return DropdownMenuItem(
-                                      value: category,
-                                      child: Text(category.name),
-                                    );
-                                  },
-                                ).toList()
-                              : IncomeCategory.values.map(
-                                  (category) {
-                                    return DropdownMenuItem(
-                                      value: category,
-                                      child: Text(category.name),
-                                    );
-                                  },
-                                ).toList(),
+                              ? ExpenceCategory.values.map((category) {
+                                  return DropdownMenuItem(
+                                    value: category,
+                                    child: Text(category.name),
+                                  );
+                                }).toList()
+                              : IncomeCategory.values.map((category) {
+                                  return DropdownMenuItem(
+                                    value: category,
+                                    child: Text(category.name),
+                                  );
+                                }).toList(),
                           value: _selectedMethode == 0
                               ? _expenceCategory
                               : _incomeCategory,
@@ -215,50 +217,70 @@ class _AddNewScreenState extends State<AddNewScreen> {
                             });
                           },
                         ),
+
                         const SizedBox(
                           height: 20,
                         ),
-                        //title Field
+                        //title feild
                         TextFormField(
                           controller: _titleControoller,
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return "Please Enter a Title!";
+                            }
+                            return null;
+                          },
                           decoration: InputDecoration(
                             hintText: "Title",
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(100),
                             ),
                             contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 20,
                               vertical: kDefaultPadding,
+                              horizontal: 20,
                             ),
-                            hintStyle: const TextStyle(color: kGrey),
                           ),
                         ),
                         const SizedBox(
                           height: 20,
                         ),
-
-                        //description Field
+                        //description feild
                         TextFormField(
-                          controller: _discriptionControoller,
+                          controller: _descriptionControoller,
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return "Please Enter a Description!";
+                            }
+                            return null;
+                          },
                           decoration: InputDecoration(
                             hintText: "Description",
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(100),
                             ),
                             contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 20,
                               vertical: kDefaultPadding,
+                              horizontal: 20,
                             ),
-                            hintStyle: const TextStyle(color: kGrey),
                           ),
                         ),
                         const SizedBox(
                           height: 20,
                         ),
-
-                        //amount Field
+                        //amount feild
                         TextFormField(
                           controller: _amountControoller,
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return "Please Enter a amount!";
+                            }
+
+                            double? amount = double.tryParse(value);
+                            if (amount == null || amount <= 0) {
+                              return "Please enter a valid amount";
+                            }
+                            return null;
+                          },
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                             hintText: "Amount",
@@ -266,37 +288,33 @@ class _AddNewScreenState extends State<AddNewScreen> {
                               borderRadius: BorderRadius.circular(100),
                             ),
                             contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 20,
                               vertical: kDefaultPadding,
+                              horizontal: 20,
                             ),
-                            hintStyle: const TextStyle(color: kGrey),
                           ),
                         ),
 
                         const SizedBox(
                           height: 20,
                         ),
-
-                        //date pikker
+                        //date picker
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             GestureDetector(
                               onTap: () {
                                 showDatePicker(
-                                  initialDate: DateTime.now(),
                                   context: context,
+                                  initialDate: DateTime.now(),
                                   firstDate: DateTime(2020),
                                   lastDate: DateTime(2025),
-                                ).then(
-                                  (value) {
-                                    if (value != null) {
-                                      setState(() {
-                                        _selectedDate = value;
-                                      });
-                                    }
-                                  },
-                                );
+                                ).then((value) {
+                                  if (value != null) {
+                                    setState(() {
+                                      _selectedDate = value;
+                                    });
+                                  }
+                                });
                               },
                               child: Container(
                                 decoration: BoxDecoration(
@@ -305,7 +323,7 @@ class _AddNewScreenState extends State<AddNewScreen> {
                                 ),
                                 child: const Padding(
                                   padding: EdgeInsets.symmetric(
-                                    horizontal: kDefaultPadding,
+                                    horizontal: 15,
                                     vertical: 10,
                                   ),
                                   child: Row(
@@ -320,9 +338,9 @@ class _AddNewScreenState extends State<AddNewScreen> {
                                       Text(
                                         "Select Date",
                                         style: TextStyle(
+                                          color: kWhite,
                                           fontSize: 16,
                                           fontWeight: FontWeight.w500,
-                                          color: kWhite,
                                         ),
                                       )
                                     ],
@@ -333,16 +351,18 @@ class _AddNewScreenState extends State<AddNewScreen> {
                             Text(
                               DateFormat.yMMMd().format(_selectedDate),
                               style: const TextStyle(
+                                color: kGrey,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
-                                color: kGrey,
                               ),
-                            ),
+                            )
                           ],
                         ),
+
                         const SizedBox(
                           height: 20,
                         ),
+                        //time picker
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -351,21 +371,19 @@ class _AddNewScreenState extends State<AddNewScreen> {
                                 showTimePicker(
                                   context: context,
                                   initialTime: TimeOfDay.now(),
-                                ).then(
-                                  (value) {
-                                    if (value != null) {
-                                      setState(() {
-                                        _selectedTime = DateTime(
-                                          _selectedDate.year,
-                                          _selectedDate.month,
-                                          _selectedDate.day,
-                                          value.hour,
-                                          value.minute,
-                                        );
-                                      });
-                                    }
-                                  },
-                                );
+                                ).then((value) {
+                                  if (value != null) {
+                                    setState(() {
+                                      _selectedTime = DateTime(
+                                        _selectedDate.year,
+                                        _selectedDate.month,
+                                        _selectedDate.day,
+                                        value.hour,
+                                        value.minute,
+                                      );
+                                    });
+                                  }
+                                });
                               },
                               child: Container(
                                 decoration: BoxDecoration(
@@ -374,13 +392,13 @@ class _AddNewScreenState extends State<AddNewScreen> {
                                 ),
                                 child: const Padding(
                                   padding: EdgeInsets.symmetric(
-                                    horizontal: kDefaultPadding,
+                                    horizontal: 15,
                                     vertical: 10,
                                   ),
                                   child: Row(
                                     children: [
                                       Icon(
-                                        Icons.timer_outlined,
+                                        Icons.timer,
                                         color: kWhite,
                                       ),
                                       SizedBox(
@@ -389,9 +407,9 @@ class _AddNewScreenState extends State<AddNewScreen> {
                                       Text(
                                         "Select Time",
                                         style: TextStyle(
+                                          color: kWhite,
                                           fontSize: 16,
                                           fontWeight: FontWeight.w500,
-                                          color: kWhite,
                                         ),
                                       )
                                     ],
@@ -402,11 +420,11 @@ class _AddNewScreenState extends State<AddNewScreen> {
                             Text(
                               DateFormat.jm().format(_selectedTime),
                               style: const TextStyle(
+                                color: kGrey,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
-                                color: kGrey,
                               ),
-                            ),
+                            )
                           ],
                         ),
                         const SizedBox(
@@ -419,9 +437,67 @@ class _AddNewScreenState extends State<AddNewScreen> {
                         const SizedBox(
                           height: 20,
                         ),
-                        CustomButton(
-                          buttonName: "Add",
-                          buttonColor: _selectedMethode == 0 ? kRed : kGreen,
+
+                        //submit button
+                        GestureDetector(
+                          onTap: () async {
+                            //save the expense or the income data into shared pref
+                            if (_formkey.currentState!.validate()) {
+                              if (_selectedMethode == 0) {
+                                //adding expense
+                                List<ExpenceModel> loadedExpenses =
+                                    await ExpenseSercive().loadExpenses();
+
+                                //create the expense to store
+                                ExpenceModel expense = ExpenceModel(
+                                  id: loadedExpenses.length + 1,
+                                  title: _titleControoller.text,
+                                  amount: _amountControoller.text.isEmpty
+                                      ? 0
+                                      : double.parse(_amountControoller.text),
+                                  category: _expenceCategory,
+                                  date: _selectedDate,
+                                  time: _selectedTime,
+                                  description: _descriptionControoller.text,
+                                );
+
+                                //add expense
+                                widget.addExpense(expense);
+
+                                //clear the feilds
+                                _titleControoller.clear();
+                                _amountControoller.clear();
+                                _descriptionControoller.clear();
+                              } else {
+                                //load incomes
+                                List<IncomeModel> loadedIncomes =
+                                    await IncomeService().loadIncomes();
+                                //create the new income
+                                IncomeModel income = IncomeModel(
+                                  id: loadedIncomes.length + 1,
+                                  title: _titleControoller.text,
+                                  amount: _amountControoller.text.isEmpty
+                                      ? 0
+                                      : double.parse(_amountControoller.text),
+                                  category: _incomeCategory,
+                                  date: _selectedDate,
+                                  time: _selectedTime,
+                                  description: _descriptionControoller.text,
+                                );
+
+                                //add income
+                                widget.addIncome(income);
+                                //clear the feilds
+                                _titleControoller.clear();
+                                _amountControoller.clear();
+                                _descriptionControoller.clear();
+                              }
+                            }
+                          },
+                          child: CustomButton(
+                            buttonName: "Add",
+                            buttonColor: _selectedMethode == 0 ? kRed : kGreen,
+                          ),
                         ),
                       ],
                     ),
